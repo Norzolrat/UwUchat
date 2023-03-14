@@ -2,6 +2,14 @@ import socket
 import os
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import padding as text_padding
+from cryptography.hazmat.backends import default_backend
+import base64
+import os
+import socket
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 65432  # The port used by the server
@@ -34,8 +42,8 @@ def rsa_decrypt(ciphertext):
     plaintext = private_key.decrypt(
         ciphertext,
         padding.OAEP(
-            mgf=padding.MGF1(algorithm=padding.SHA256()),
-            algorithm=padding.SHA256(),
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
             label=None
         )
     )
@@ -43,8 +51,15 @@ def rsa_decrypt(ciphertext):
 
 
 def aes_decrypt(ciphertext, key):
-    # TODO: Implement AES decryption
-    pass
+    iv = ciphertext[:16]
+    ciphertext = ciphertext[16:]
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    unpadder = text_padding.PKCS7(algorithms.AES.block_size).unpadder()
+    plaintext = unpadder.update(plaintext) + unpadder.finalize()
+    return plaintext
+
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
