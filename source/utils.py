@@ -82,8 +82,10 @@ def decrypt_message_rsa(ciphertext, key):
     )
     return plaintext
 
-def server_request(ask):
+def server_request(encrypted_message_base64):
     url = 'http://localhost:54321/'
-    response = requests.get(url + ask)
+    response = requests.post(url, data=encrypted_message_base64)
     if response.ok:
         return(response.text)
+
+

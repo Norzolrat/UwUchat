@@ -3,27 +3,23 @@ from utils import *
 
 private_key = get_rsa_private('private_key.pem')
 
+import base64
+
 class MyServer(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        encrypted_message_base64 = self.rfile.read(content_length)
+        encrypted_message = base64.b64decode(encrypted_message_base64)
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        response = decrypt_message_rsa(self.path[1:].encode(), private_key)
 
+        response = decrypt_message_rsa(encrypted_message, private_key)
         response_content = """{}""".format(response.decode('utf-8'))
-
-        # response_content = """
-        # <html>
-        #     <head>
-        #         <title>UwUchat</title>
-        #     </head>
-        #     <body>
-        #         <p>Request: {}</p>
-        #     </body>
-        # </html>
-        # """.format(self.path)
-
         self.wfile.write(response_content.encode('utf-8'))
+
+
 
 if __name__ == "__main__":
     HOSTNAME = "localhost"
