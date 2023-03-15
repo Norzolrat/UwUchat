@@ -1,0 +1,105 @@
+<mxfile host="65bd71144e" pages="2">
+    <diagram name="Sequence" id="JgcEw9M8dI1Xy2gp9OZx">
+        <mxGraphModel dx="1369" dy="964" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="UR0DFZb04nUeP79YXbAC-0"/>
+                <mxCell id="UR0DFZb04nUeP79YXbAC-1" parent="UR0DFZb04nUeP79YXbAC-0"/>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-2" value="Server" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" parent="UR0DFZb04nUeP79YXbAC-1" vertex="1">
+                    <mxGeometry x="790" y="280" width="100" height="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="generate(group_id) : group_key" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;entryX=1;entryY=0;" parent="jlnA7Bbo42E9i6tjMMHw-2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="50" y="90" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="75" y="90"/>
+                            <mxPoint x="75" y="110"/>
+                        </Array>
+                        <mxPoint x="50" y="110" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="regenerate(group_id) : new_group_key" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;entryX=1;entryY=0;" parent="jlnA7Bbo42E9i6tjMMHw-2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="50" y="330" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="75" y="330"/>
+                            <mxPoint x="75" y="350"/>
+                        </Array>
+                        <mxPoint x="50" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-4" value="Client1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" parent="UR0DFZb04nUeP79YXbAC-1" vertex="1">
+                    <mxGeometry x="60" y="280" width="120" height="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-13" value="creation_group" style="html=1;verticalAlign=bottom;startArrow=circle;startFill=1;endArrow=open;startSize=6;endSize=8;" parent="UR0DFZb04nUeP79YXbAC-1" target="jlnA7Bbo42E9i6tjMMHw-2" edge="1">
+                    <mxGeometry x="0.0421" width="80" relative="1" as="geometry">
+                        <mxPoint x="110" y="359.5" as="sourcePoint"/>
+                        <mxPoint x="299.5" y="359.5" as="targetPoint"/>
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="Client2" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" vertex="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry x="300" y="280" width="120" height="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="Client3" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" vertex="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry x="540" y="280" width="120" height="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="add_user(Client2)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="15">
+                    <mxGeometry x="-0.0833" width="80" relative="1" as="geometry">
+                        <mxPoint x="-420" y="160" as="sourcePoint"/>
+                        <mxPoint x="300" y="160" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="aes_new_group_key" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" edge="1" parent="15">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="300" y="360" as="sourcePoint"/>
+                        <mxPoint x="60" y="360" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="aes_group_key" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" parent="UR0DFZb04nUeP79YXbAC-1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="840" y="400" as="sourcePoint"/>
+                        <mxPoint x="120" y="400" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="aes_group_key" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="840" y="480" as="sourcePoint"/>
+                        <mxPoint x="360" y="480" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" value="add_user(Client3)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry x="-0.0833" width="80" relative="1" as="geometry">
+                        <mxPoint x="120" y="520" as="sourcePoint"/>
+                        <mxPoint x="840" y="520" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" value="aes_group_key" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="840" y="559.5" as="sourcePoint"/>
+                        <mxPoint x="600" y="559.5" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="dell_user(Client2)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry x="-0.0833" width="80" relative="1" as="geometry">
+                        <mxPoint x="120" y="600" as="sourcePoint"/>
+                        <mxPoint x="840" y="600" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="aes_new_group_key" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="840" y="680" as="sourcePoint"/>
+                        <mxPoint x="120" y="680" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

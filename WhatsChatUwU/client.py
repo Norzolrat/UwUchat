@@ -61,6 +61,7 @@ class Client:
 
         request_data = json.dumps(params) # transforme le paramètre en JSON (string)
 
+
         r_post = {}
 
         # FIXME : chiffrer la requête ...
@@ -70,7 +71,7 @@ class Client:
 
         r_post["encdata"] = request_data # TODO : delete me (Transmis en clair ici)
 
-        r = requests.post(SERVER_URL, data=json.dumps(r_post), proxies=PROXY)
+        r = requests.post(SERVER_URL, data=RSA_encrypt(json.dumps(r_post), K_S_pub), proxies=PROXY)
     
         enc_r = r.text
 

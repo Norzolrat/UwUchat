@@ -51,14 +51,23 @@ class Server(BaseHTTPRequestHandler):
         global K_S_pub
 
         content_length = int(self.headers['Content-Length'])
-        POST_data = self.rfile.read(content_length)
-
+        ENC_POST_data = self.rfile.read(content_length)
+        POST_data = RSA_decrypt(ENC_POST_data, K_S_priv)
         json_POST = json.loads(POST_data) # Charge le JSON de la requête
 
-        # TODO : déchiffrer la requête
-        # enckey = base64.b64decode(json_POST["enckey"] ...)
-        # encIV = json_POST["IV"]
-        # data = b64(decrypt(json_POST["encdata"])) ...
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
+        response = decrypt_message_rsa(encrypted_message, private_key)
+        response_content = """{}""".format(response.decode('utf-8'))
+        self.wfile.write(response_content.encode('utf-8'))
+        # DONE : déchiffrer la requête
+        
+        enckey = base64.b64decode(json_POST["enckey"])
+        encIV = json_POST["IV"]
+        data = b64(decrypt(json_POST["encdata"]))
+
 
         data = json_POST["encdata"] # TODO : delete me (Transmis en clair ici)
 
