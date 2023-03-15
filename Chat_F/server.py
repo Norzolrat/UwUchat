@@ -1,45 +1,77 @@
 import socket
 import threading
-from crypto import (rsa_decrypt, decrypt_aes, generate_rsa_keys,
-                    rsa_encrypt, encrypt_aes, serialize_public_key, load_public_key)
+import json
+from crypto import (
+    load_private_key,
+    rsa_decrypt,
+    encrypt_aes,
+    decrypt_aes,
+    generate_aes_key,
+    serialize_public_key,
+    load_public_key,
+)
 
+IP = '127.0.0.1'
+PORT = 5555
+ADDR = (IP, PORT)
+FORMAT = 'utf-8'
 
-class Server:
-    def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
 
-    def start(self):
-        self.server.bind((self.ip, self.port))
-        self.server.listen()
-        print(f"Server is listening on {self.ip}:{self.port}")
+client_public_keys = {}
+private_key = None
 
-        while True:
-            conn, addr = self.server.accept()
-            print(f"New connection from {addr}")
-            threading.Thread(target=self.handle_client, args=(conn,)).start()
+def handle_client(conn, addr):
+    global client_public_keys
+    print(f"[NEW CONNECTION] {addr} connected.")
+    
+    # Receive client's public key and store it
+    client_id = conn.recv(1024).decode(FORMAT)
+    client_public_key_bytes = conn.recv(1024)
+    client_public_key = load_public_key(client_public_key_bytes)
+    client_public_keys[client_id] = client_public_key
 
-    def handle_client(self, conn):
-        private_key, public_key = generate_rsa_keys()
-        serialized_public_key = serialize_public_key(public_key)
-        conn.send(serialized_public_key)
+    # Receive encrypted AES key and decrypt it
+    encrypted_aes_key = conn.recv(1024)
+    aes_key = rsa_decrypt(private_key, encrypted_aes_key)
 
-        encrypted_aes_key = conn.recv(1024)
-        aes_key = rsa_decrypt(encrypted_aes_key, private_key)
+    while True:
+        msg_length = conn.recv(1024).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = conn.recv(msg_length)
 
-        while True:
-            encrypted_message = conn.recv(1024)
-            iv = conn.recv(1024)
-            message = decrypt_aes(encrypted_message, aes_key, iv)
-            print(f"Received message: {message}")
+            # Decrypt the message
+            decrypted_msg = decrypt_aes(aes_key, msg)
+            print(f"[{addr}] {decrypted_msg}")
 
-            response = input("Enter your response: ")
-            encrypted_response, iv = encrypt_aes(response, aes_key)
-            conn.send(encrypted_response)
-            conn.send(iv)
+            if decrypted_msg == "DISCONNECT":
+                break
 
+            # Encrypt the reply
+            reply = f"Message received: {decrypted_msg}"
+            encrypted_reply = encrypt_aes(aes_key, reply)
+
+            # Send the encrypted reply
+            reply_length = len(encrypted_reply)
+            conn.send(str(reply_length).encode(FORMAT))
+            conn.send(encrypted_reply)
+
+    conn.close()
+
+def start():
+    global private_key
+    server.listen()
+    print(f"[LISTENING] Server is listening on {IP}:{PORT}")
+    while True:
+        conn, addr = server.accept()
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
+        thread.start()
 
 if __name__ == "__main__":
-    server = Server("127.0.0.1", 5555)
-    server.start()
+    with open("private_key.pem", "rb") as key_file:
+        serialized_private_key = key_file.read()
+    private_key = load_private_key(serialized_private_key)
+    print("[STARTING] server is starting...")
+    start()

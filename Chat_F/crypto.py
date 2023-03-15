@@ -100,3 +100,18 @@ def load_private_key(pem):
         pem, password=None, backend=default_backend()
     )
     return private_key
+
+def serialize_private_key(private_key):
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+def load_private_key(serialized_private_key):
+    return serialization.load_pem_private_key(
+        serialized_private_key,
+        password=None,
+        backend=default_backend()
+    )
+
