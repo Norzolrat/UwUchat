@@ -1,0 +1,62 @@
+<mxfile host="65bd71144e" pages="2">
+    <diagram name="Sequence" id="JgcEw9M8dI1Xy2gp9OZx">
+        <mxGraphModel dx="862" dy="607" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="UR0DFZb04nUeP79YXbAC-0"/>
+                <mxCell id="UR0DFZb04nUeP79YXbAC-1" parent="UR0DFZb04nUeP79YXbAC-0"/>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-2" value="Server" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" parent="UR0DFZb04nUeP79YXbAC-1" vertex="1">
+                    <mxGeometry x="310" y="280" width="100" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="change_password(hash_new_password)" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;entryX=1;entryY=0;" parent="jlnA7Bbo42E9i6tjMMHw-2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="50" y="170" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="75" y="170"/>
+                            <mxPoint x="75" y="190"/>
+                        </Array>
+                        <mxPoint x="50" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" value="check(hash_password)" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;entryX=1;entryY=0;" edge="1" parent="jlnA7Bbo42E9i6tjMMHw-2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="50" y="90" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="75" y="90"/>
+                            <mxPoint x="75" y="110"/>
+                        </Array>
+                        <mxPoint x="50" y="110" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-4" value="Client" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;lifelineDashed=0;" parent="UR0DFZb04nUeP79YXbAC-1" vertex="1">
+                    <mxGeometry x="60" y="280" width="120" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="jlnA7Bbo42E9i6tjMMHw-13" value="HASH(password)" style="html=1;verticalAlign=bottom;startArrow=circle;startFill=1;endArrow=open;startSize=6;endSize=8;" parent="UR0DFZb04nUeP79YXbAC-1" target="jlnA7Bbo42E9i6tjMMHw-2" edge="1">
+                    <mxGeometry x="0.0421" width="80" relative="1" as="geometry">
+                        <mxPoint x="110" y="359.5" as="sourcePoint"/>
+                        <mxPoint x="299.5" y="359.5" as="targetPoint"/>
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5" value="passord_not_valid | password_valid" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" parent="UR0DFZb04nUeP79YXbAC-1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="360" y="399.9999999999999" as="sourcePoint"/>
+                        <mxPoint x="120" y="399.9999999999999" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="10" value="HASH(new_password)" style="html=1;verticalAlign=bottom;startArrow=circle;startFill=1;endArrow=open;startSize=6;endSize=8;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry x="0.0421" width="80" relative="1" as="geometry">
+                        <mxPoint x="110" y="440" as="sourcePoint"/>
+                        <mxPoint x="359.5" y="440" as="targetPoint"/>
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="12" value="password as changed" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;" edge="1" parent="UR0DFZb04nUeP79YXbAC-1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="360" y="480" as="sourcePoint"/>
+                        <mxPoint x="120" y="480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
