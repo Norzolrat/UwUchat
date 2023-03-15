@@ -4,10 +4,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import base64
 
-
 from mycrypto import *
 from common import *
-
 
 # "JSON"  database in memory
 BDD = {
@@ -55,34 +53,31 @@ class Server(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         POST_data = self.rfile.read(content_length)
 
-        json_POST = json.loads(POST_data)  # Charge le JSON de la requête
+        json_POST = json.loads(POST_data) # Charge le JSON de la requête
 
-        # ADDED: déchiffrer la requête
-        enckey = base64.b64decode(json_POST["enckey"])
-        encIV = base64.b64decode(json_POST["IV"])
-        encdata = base64.b64decode(json_POST["encdata"])
-        cipher_key = RSA_decrypt(K_S_priv, enckey)
-        data = AES_decrypt(encdata, cipher_key, encIV)
+        # TODO : déchiffrer la requête
+        # enckey = base64.b64decode(json_POST["enckey"] ...)
+        # encIV = json_POST["IV"]
+        # data = b64(decrypt(json_POST["encdata"])) ...
 
-        decrypted_request = json.loads(data)  # Converti le JSON déchiffré en dict python
+        data = json_POST["encdata"] # TODO : delete me (Transmis en clair ici)
+
+        decrypted_request = json.loads(data) # Converti le JSON déchiffré en dict python
 
         response = self.handle_request(decrypted_request)
         json_response = json.dumps(response)
 
-        # ADDED: chiffrer la réponse
-        enc_key, enc_key_encrypted = RSA_encrypt(K_S_pub, AES_gen_key())
-        IV = AES_gen_IV()
-        encrypted_json = base64.b64encode(AES_encrypt(json_response.encode(), enc_key, IV)).decode()
+        # TODO : chiffrer la réponse
+        # encrypted_json = crypt(json_response) ...
 
-        json_response = json.dumps({
-            "enckey": base64.b64encode(enc_key_encrypted).decode(),
-            "IV": base64.b64encode(IV).decode(),
-            "encdata": encrypted_json
-        })
+        encrypted_json = json_response # TODO delete me (En clair ici aussi donc)
+        
+        json_response = json.dumps(encrypted_json)
 
         self.send_response(200)
         self.end_headers()
         self.wfile.write(json_response.encode())
+
 
     def handle_request(self, params:dict)->dict:
         """

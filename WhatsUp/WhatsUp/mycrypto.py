@@ -1,209 +1,72 @@
 import os
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import AES, PKCS1_OAEP
-from Crypto.Random import get_random_bytes
-from Crypto.Util.Padding import pad, unpad
-
-
-
-
-### HASH
-
-import hashlib
-
-def hash(data:bytes):
-    """
-    SHA256(data)
-    
-    data : bytes
-    return : bytes
-    """
-    h = hashlib.new("sha256")
-    h.update(data)
-    return h.digest()
-
-
-### SYMETRIC
-
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-def AES_gen_key() -> bytes:
-    """
-    Generate AES key
-    """
-    return os.urandom(32) # /dev/urandom sous linux, CryptGenRandom() sous Windows
-
-def AES_gen_IV() -> bytes:
-    """
-    Generate AES IV
-    """
-    return os.urandom(16)
-
-def AES_encrypt(data, key, iv) -> bytes:
-    """
-    Encrypt data with AES using key and iv
-    """
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-    encryptor = cipher.encryptor()
-    enc = encryptor.update(data) + encryptor.finalize()
-    return enc
-
-def AES_decrypt(enc, key, iv) -> bytes:
-    """
-    Decrypt encdata with AES using key and iv
-    """
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-    decryptor = cipher.decryptor()
-    dec = decryptor.update(enc) + decryptor.finalize()
-    return dec
-
-def PBKDF2(password) -> bytes:
-    """
-    Get an AES key from a password
-    """
-    # Note : On s'en fiche pour ce projet
-    h = password
-    for i in range(0, 100):
-        h = hash(h)
-
-    return h[:32]
-
-
-### ASYMETRIC
-
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends.openssl.rsa import _RSAPublicKey, _RSAPrivateKey
-from cryptography.hazmat.primitives.asymmetric import padding
+import base64
 from cryptography.hazmat.primitives import hashes
-
-def RSA_gen_key() -> tuple:
-    """
-    Generate RSA key pair
-    return (public key, private key)
-    """
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        )
-
-    return (private_key.public_key(), private_key)
-
-def RSA_export_key(key) -> bytes:
-    """
-    Export RSA key to string (PEM)
-    """
-    if key.__class__ == _RSAPublicKey:
-        # export a public key
-        return key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    else:
-        # export a private key
-        return key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption())
-    
-
-def RSA_import_key(pem:bytes):
-    """
-    Import RSA key from string (PEM)
-    """
-
-    if type(pem) == str: # avoid mistakes :)
-        pem = pem.encode()
-
-    if pem.find(b'PRIVATE') >= 0:
-        return serialization.load_pem_private_key(pem, password=None)
-    else:
-        return serialization.load_pem_public_key(pem)
-
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
-def load_rsa_public_key(pem_data):
-    public_key = serialization.load_pem_public_key(
-        pem_data,
-        backend=default_backend()
-    )
-    return public_key
+def AES_gen_key():
+    return os.urandom(32)
 
-from cryptography.hazmat.primitives.asymmetric import padding
+def AES_encrypt(key, iv, data):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(data) + encryptor.finalize()
 
-def RSA_encrypt(public_key_bytes, data):
+def AES_decrypt(key, iv, data):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    return decryptor.update(data) + decryptor.finalize()
+
+def RSA_encrypt(public_key_pem, data):
+    public_key_bytes = base64.b64decode(public_key_pem)
+
+    # Debugging statements
+    print("Public key data:", public_key_bytes)
+    print("Public key data type:", type(public_key_bytes))
+
     public_key = load_rsa_public_key(public_key_bytes.encode())
-    
-    key = os.urandom(32)
-    iv = os.urandom(16)
-    
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-    enc_data = cipher.encryptor().update(data) + cipher.encryptor().finalize()
-
-    enc_key = public_key.encrypt(
-        key,
+    encrypted_data = public_key.encrypt(
+        data,
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
     )
-    
-    return enc_key, enc_data, iv
+    return encrypted_data
 
-
-
-def rsa_public_key_to_pem(public_key):
-    pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+def RSA_decrypt(private_key_pem, data):
+    private_key_bytes = base64.b64decode(private_key_pem)
+    private_key = load_rsa_private_key(private_key_bytes)
+    decrypted_data = private_key.decrypt(
+        data,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
     )
-    return pem
+    return decrypted_data
 
+def load_rsa_private_key(private_key_bytes):
+    private_key = serialization.load_pem_private_key(
+        private_key_bytes,
+        password=None,
+        backend=default_backend()
+    )
+    return private_key
 
-def RSA_decrypt(data, key) -> bytes:
-    """
-    Pass the RSA decryption algorithm on the data with the key (public or private)
-    """
-    return key.decrypt(data, padding.OAEP(
-                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                        algorithm=hashes.SHA256(),
-                        label=None)
-                )
+def load_rsa_public_key(public_key_bytes):
+    public_key = serialization.load_pem_public_key(
+        public_key_bytes,
+        backend=default_backend()
+    )
+    return public_key
 
-
-#
-# Pour tester que tout marche bien / example
-#
-
-if __name__ == "__main__":
-    data = b"my super message"
-
-    K = AES_gen_key()
-    IV = AES_gen_IV()
-
-    enc = AES_encrypt(data, K, IV)
-    d = AES_decrypt(enc, K, IV)
-
-    print(d)
-
-    (pub, priv) = RSA_gen_key()
-
-    enc = RSA_encrypt(data, pub)
-    print(RSA_decrypt(enc, priv))
-    
-    pub_pem = RSA_export_key(pub)
-    priv_pem = RSA_export_key(priv)
-
-    print(pub_pem.decode())
-    print(priv_pem.decode())
-
-    pub_loaded = RSA_import_key(pub_pem)
-    priv_loaded = RSA_import_key(priv_pem)
-
-    enc = RSA_encrypt(data, pub_loaded)
-    print(RSA_decrypt(enc, priv_loaded))
-
-    
+def RSA_import_key(key_pem):
+    key_bytes = base64.b64decode(key_pem)
+    key = load_rsa_private_key(key_bytes)
+    return key
 
