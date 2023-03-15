@@ -8,9 +8,9 @@ class MyServer(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        response = decrypt_message_rsa(self.path.split('/')[1], private_key)
+        response = decrypt_message_rsa(self.path[1:].encode(), private_key)
 
-        response_content = """{}""".format(response)
+        response_content = """{}""".format(response.decode('utf-8'))
 
         # response_content = """
         # <html>
@@ -23,7 +23,7 @@ class MyServer(BaseHTTPRequestHandler):
         # </html>
         # """.format(self.path)
 
-        self.wfile.write(response_content.encode())
+        self.wfile.write(response_content.encode('utf-8'))
 
 if __name__ == "__main__":
     HOSTNAME = "localhost"
