@@ -8,9 +8,31 @@ from cryptography.hazmat.backends import default_backend
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 1234
 
-def rsa_encrypt(message, public_key):
+# Fonction pour générer une clé AES aléatoire
+def generate_aes_key():
+    return os.urandom(32)
+
+# Fonction pour chiffrer un message avec une clé AES donnée
+def aes_encrypt(message, key):
+    iv = os.urandom(16)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(message) + encryptor.finalize()
+    return iv + ciphertext
+
+# Fonction pour déchiffrer un message avec une clé AES donnée
+def aes_decrypt(ciphertext, key):
+    iv = ciphertext[:16]
+    ciphertext = ciphertext[16:]
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    return plaintext
+
+# Fonction pour chiffrer une clé AES avec une clé publique RSA donnée
+def rsa_encrypt(key, public_key):
     ciphertext = public_key.encrypt(
-        message.encode(),
+        key,
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
@@ -19,6 +41,7 @@ def rsa_encrypt(message, public_key):
     )
     return ciphertext
 
+# Fonction pour déchiffrer une clé AES avec une clé privée RSA donnée
 def rsa_decrypt(ciphertext, private_key):
     plaintext = private_key.decrypt(
         ciphertext,
@@ -28,71 +51,58 @@ def rsa_decrypt(ciphertext, private_key):
             label=None
         )
     )
-    return plaintext.decode()
+    return plaintext
 
 def main():
-    # Génération d'une paire de clés RSA
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048
-    )
-    public_key = private_key.public_key()
-
-    # Enregistrement de la clé publique dans un fichier pem
-    with open("key_public.pem", "wb") as f:
-        pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-        f.write(pem)
-
-    # Création de la clé de chiffrement AES
-    key = os.urandom(32)
-
-    # Démarrage du serveur
+    # Création d'une socket TCP/IP
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        # Liaison du socket à l'adresse et au port
         s.bind((SERVER_HOST, SERVER_PORT))
+
+        # Écoute pour les connexions entrantes
         s.listen()
-        print("Server is listening on {}:{}".format(SERVER_HOST, SERVER_PORT))
 
-        # Attente d'une connexion client
-        conn, addr = s.accept()
-        with conn:
-            print("Connected by", addr)
+        print(f"Listening on {SERVER_HOST}:{SERVER_PORT}...")
 
-            # Envoi de la clé publique du serveur
-            with open("key_public.pem", "rb") as f:
-                data = f.read()
-            conn.sendall(data)
+        while True:
+            # Attente d'une connexion
+            conn, addr = s.accept()
+            print(f"Connected by {addr}")
 
-            # Réception de la clé temporaire du client
+            # Génération d'une paire de clés RSA pour la communication avec le client
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+                backend=default_backend()
+            )
+            public_key = private_key.public_key()
+
+            # Envoi de la clé publique RSA au client
+            pem = public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            )
+            conn.sendall(pem)
+
+            # Réception de la clé AES chiffrée avec la clé publique RSA du serveur
             data = conn.recv(1024)
-            client_key = rsa_decrypt(data, private_key)
+            aes_key = rsa_decrypt(data, private_key)
 
-            # Envoi de la clé de chiffrement AES chiffrée au client
-            cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())
-            encryptor = cipher.encryptor()
-            ciphertext = encryptor.update(client_key.encode()) + encryptor.finalize()
-            conn.sendall(ciphertext)
-
-            # Réception de messages chiffrés du client
             while True:
+                # Réception de messages chiffrés en AES du client
                 data = conn.recv(1024)
                 if not data:
                     break
-                decryptor = cipher.decryptor()
-                client_message = decryptor.update(data) + decryptor.finalize()
-                print("Received data:", client_message.decode())
+                plaintext = aes_decrypt(data, aes_key)
+                print(f"Received message: {plaintext.decode()}")
 
-                # Envoi de messages chiffrés au client
-                message = input("Enter message to send: ")
-                if message == "quit":
-                    break
-                encryptor = cipher.encryptor()
-                ciphertext = encryptor.update(message.encode()) + encryptor.finalize()
+                # Envoi de réponses chiffrées en AES au client
+                message = input("Enter a message: ")
+                ciphertext = aes_encrypt(message.encode(), aes_key)
                 conn.sendall(ciphertext)
 
-    # Suppression de la clé publique du fichier pem
-    os.remove("key_public.pem")
-    print("Disconnected from client")
+if __name__ == "__main__":
+    main()
 
