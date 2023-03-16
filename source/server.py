@@ -1,3 +1,4 @@
+import io
 import json
 import base64
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -10,20 +11,19 @@ class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers.get('Content-Length', 0))
         message_base64 = self.rfile.read(content_length)
-        print(message_base64)
-        POST_data = base64.b64decode(message_base64)
-        print(POST_data)
+        POST_data = io.StringIO(base64.b64decode(message_base64).decode())
         json_POST = json.load(POST_data)
-    
-        if json_POST.type == 'RSA':
-            encrypted_message = base64.b64decode(json_POST.content)
+        print(json_POST)
+
+        if json_POST['type'] == 'RSA':
+            encrypted_message = base64.b64decode(json_POST['content'])
             response = decrypt_message_rsa(encrypted_message.encode(), private_key)
-        elif json_POST.type == 'AES':
-            encrypted_message = base64.b64decode(json_POST.content)
+        elif json_POST['type'] == 'AES':
+            encrypted_message = base64.b64decode(json_POST['content'])
             aes_key, iv_aes_key = ""
             response = decrypt_message_rsa(encrypted_message.encode(), aes_key, iv_aes_key)
         else:
-            response = "error: Invalid type field"
+            response = b"error: Invalid type field"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
