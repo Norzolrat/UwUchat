@@ -94,7 +94,6 @@ def crypt_message_aes(message, key, iv):
     ciphertext = encryptor.update(padded_message) + encryptor.finalize()
     return base64.b64encode(ciphertext).decode()
 
-
 def decrypt_message_aes(ciphertext, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
@@ -151,6 +150,36 @@ def save_database(users, messages):
 
 # -- login -- #
 
+def client_signup(self, login, passwd):
+    return self.send_request({"action":"signup", "login":login, "password":passwd})
+
+def client_login(self, login, passwd):
+    return self.send_request({"action":"login", "login":login, "password":passwd})
+
+def server_signin(params, db_user):
+    if params["action"] == "signup":
+        login = params["login"]
+        password = params["password"]
+        if login in db_user.keys():
+            return "error : Already exists"
+        salt = base64.b64encode(os.urandom(16)).decode()
+        db_user[login] = {
+            "password": password_hash(password, salt),
+            "slat" : salt
+        }
+        return db_user
+    elif params["action"] == "login":
+        login = params["login"]
+        password = params["password"]
+        if login not in db_user.keys():
+            return "error : Bad login"
+        else:
+            if db_user[login]["password"] == password_hash(password, db_user[login]["salt"]):
+                return db_user
+            else:
+                return "error : Bad password"
+
+
 # -- test -- #
 
 if __name__ == "__main__":
@@ -168,6 +197,7 @@ if __name__ == "__main__":
 
     temp_aes = {'aes_key' : generate_aes(), 'aes_iv' : generate_aes_iv()}
     enc_data_aes = crypt_message_aes(data, temp_aes['aes_key'], temp_aes['aes_iv'])
+    print(type(temp_aes['aes_key']))
     response_aes = decrypt_message_aes(base64.b64decode(enc_data_aes), temp_aes['aes_key'], temp_aes['aes_iv'])
 
     print("\n=----------- AES ----------=")

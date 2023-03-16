@@ -4,9 +4,6 @@ import base64
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from utils import *
 
-private_key = get_rsa_private('private_key.pem')
-(db_users, db_messages) = load_database()
-
 class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):
 
@@ -39,6 +36,8 @@ class MyServer(BaseHTTPRequestHandler):
         self.wfile.write(response_content.encode('utf-8'))
 
 if __name__ == "__main__":
+    private_key = get_rsa_private('private_key.pem')
+    (db_users, db_messages) = load_database()
     HOSTNAME = "localhost"
     SERVER_PORT = 54321
     try:
