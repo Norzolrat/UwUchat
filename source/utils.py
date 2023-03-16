@@ -1,4 +1,6 @@
 import requests
+import time
+import json
 import base64
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -12,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 
-
+# -- Asymetric -- #
 
 def generate_rsa_key():
     private_key = rsa.generate_private_key(
@@ -55,9 +57,6 @@ def get_rsa_public(file):
         public_key = public_key_pem
         return public_key
 
-def generate_aes():
-    return os.urandom(32)
-
 def crypt_message_rsa(message, public_key_pem):
     public_key = serialization.load_pem_public_key(public_key_pem)
 
@@ -82,10 +81,73 @@ def decrypt_message_rsa(ciphertext, key):
     )
     return plaintext
 
+# -- symetric -- #
+
+def generate_aes():
+    return os.urandom(32)
+
+def generate_aes_iv():
+    return os.urandom(32)
+
+def crypt_message_aes(message, key, iv):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(message) + encryptor.finalize()
+    return ciphertext
+
+def decrypt_message_rsa(ciphertext, key, iv):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    decryptor = cipher.decryptor()
+    message = decryptor.update(ciphertext) + decryptor.finalize()
+    return message
+
+# -- hashing -- #
+
+def password_hash(password, salt):
+    try:
+        passphrase = password + salt
+        hash_object = hashlib.sha256(passphrase.encode())
+        hash_hex = hash_object.hexdigest()
+        return hash_hex
+    except:
+        return None
+
+# -- serveur comms -- #
+
 def server_request(encrypted_message_base64):
     url = 'http://localhost:54321/'
     response = requests.post(url, data=encrypted_message_base64)
     if response.ok:
         return(response.text)
 
+# -- persitence -- #
+
+def user_json(username, password, salt):
+    user = {username : [password_hash(password, salt), salt]}
+    return json.loads(user)
+
+def message_json(content, size):
+    user = {size : [time.time(), content]}
+    return json.loads(user)
+
+def load_database():
+    path = './database.json'
+    if not os.path.exists(path):
+        data = {'users' : {}, 'messages' : {}}
+        file = open(path, 'w+')
+        json.dump(data, file)
+        file.close
+        return (data['users'], data['messages'])
+    with open(path, 'r') as file:
+        data = json.load(file)
+    return (data['users'], data['messages'])
+
+def save_database(users, messages):
+    data = {'users' : users, 'messages' : messages}
+    path = './database.json'
+    file = open(path, 'w+')
+    json.dump(data, file)
+    file.close
+
+# -- login -- #
 
