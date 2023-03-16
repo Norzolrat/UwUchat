@@ -197,7 +197,7 @@ def req_for_login(value, public_key):
     enc_message = crypt_message_aes(data_login, aes_key, aes_iv)
     enc_message_b64 = base64.b64encode(enc_message)
 
-    data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key_b64, 'content_aes' : enc_message_b64, 'aes_iv' : aes_iv_b64}
+    data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8")}
     print(type(data))
     return json.dumps(data)
 

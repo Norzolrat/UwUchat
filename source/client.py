@@ -21,7 +21,9 @@ else:
     print("Invalid choice")
     exit()
 
-response = server_request(req_for_login(r, public_key))
+req_login = req_for_login(r, public_key)
+print(req_login)
+response = server_request(req_login)
 print(response)
 
 # private_key, public_key = generate_rsa_key()
