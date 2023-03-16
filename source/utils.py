@@ -1,23 +1,22 @@
 import requests
+import hashlib
 import time
 import json
 import base64
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
-
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import asymmetric
 
 
 # -- Asymetric -- #
 
 def generate_rsa_key():
-    private_key = rsa.generate_private_key(
+    private_key = asymmetric.rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048
     )
@@ -62,8 +61,8 @@ def crypt_message_rsa(message, public_key_pem):
 
     ciphertext = public_key.encrypt(
         message,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        asymmetric.padding.OAEP(
+            mgf=asymmetric.padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
@@ -73,8 +72,8 @@ def crypt_message_rsa(message, public_key_pem):
 def decrypt_message_rsa(ciphertext, key):
     plaintext = key.decrypt(
         ciphertext,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        asymmetric.padding.OAEP(
+            mgf=asymmetric.padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
@@ -87,13 +86,22 @@ def generate_aes():
     return os.urandom(32)
 
 def generate_aes_iv():
-    return os.urandom(32)
+    return os.urandom(16)
+
+# def crypt_message_aes(message, key, iv):
+#     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+#     encryptor = cipher.encryptor()
+#     ciphertext = encryptor.update(message) + encryptor.finalize()
+#     return base64.b64encode(ciphertext).decode()
 
 def crypt_message_aes(message, key, iv):
+    padder = padding.PKCS7(128).padder()
+    padded_message = padder.update(message) + padder.finalize()
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(message) + encryptor.finalize()
-    return ciphertext
+    ciphertext = encryptor.update(padded_message) + encryptor.finalize()
+    return base64.b64encode(ciphertext).decode()
+
 
 def decrypt_message_aes(ciphertext, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
