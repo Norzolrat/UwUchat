@@ -13,11 +13,11 @@ class MyServer(BaseHTTPRequestHandler):
         message_base64 = self.rfile.read(content_length)
         POST_data = io.StringIO(base64.b64decode(message_base64).decode())
         json_POST = json.load(POST_data)
-        print(json_POST)
 
         if json_POST['type'] == 'RSA':
             encrypted_message = base64.b64decode(json_POST['content'])
-            response = decrypt_message_rsa(encrypted_message.encode(), private_key)
+            response = decrypt_message_rsa(encrypted_message, private_key)
+            print(response)
         elif json_POST['type'] == 'AES':
             encrypted_message = base64.b64decode(json_POST['content'])
             aes_key, iv_aes_key = ""

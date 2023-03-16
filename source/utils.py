@@ -95,7 +95,7 @@ def crypt_message_aes(message, key, iv):
     ciphertext = encryptor.update(message) + encryptor.finalize()
     return ciphertext
 
-def decrypt_message_rsa(ciphertext, key, iv):
+def decrypt_message_aes(ciphertext, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
     message = decryptor.update(ciphertext) + decryptor.finalize()
