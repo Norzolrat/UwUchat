@@ -34,7 +34,7 @@ choice = input("Choix --> ")
 if choice == "1":
     login = input("Login : ")
     passwd = input("Password : ")
-    r = clien_signup(login, passwd)
+    r = client_signup(login, passwd)
 elif choice == "2":
     login = input("Login : ")
     passwd = input("Password : ")
