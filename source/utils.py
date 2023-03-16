@@ -97,7 +97,11 @@ def crypt_message_aes(message, key, iv):
 def decrypt_message_aes(ciphertext, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
-    message = decryptor.update(ciphertext) + decryptor.finalize()
+    padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+    unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+    message = unpadder.update(padded_data) + unpadder.finalize()
+
+
     return message
 
 # -- hashing -- #
@@ -150,11 +154,11 @@ def save_database(users, messages):
 
 # -- login -- #
 
-def client_signup(self, login, passwd):
-    return self.send_request({"action":"signup", "login":login, "password":passwd})
+def client_signup(login, passwd):
+    return {"action":"signup", "login":login, "password":passwd}
 
-def client_login(self, login, passwd):
-    return self.send_request({"action":"login", "login":login, "password":passwd})
+def client_login(login, passwd):
+    return {"action":"login", "login":login, "password":passwd}
 
 def server_signin(params, db_user):
     if params["action"] == "signup":
@@ -183,7 +187,7 @@ def server_signin(params, db_user):
 # -- test -- #
 
 if __name__ == "__main__":
-    data = b"my super message, hfhfhfhfhfhshshdhsfjjf"
+    data = b"my super message, hfhfhfhfhfhshshdhsfjjfj"
 
     public_key = get_rsa_public('public_key.pem')
     private_key = get_rsa_private('private_key.pem')

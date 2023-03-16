@@ -18,14 +18,25 @@ class MyServer(BaseHTTPRequestHandler):
         if json_POST['type'] == 'RSA':
             encrypted_message = base64.b64decode(json_POST['content'])
             post_aes = decrypt_message_rsa(encrypted_message, private_key)
+
             json_aes = json.load(io.StringIO(post_aes.decode('utf-8')))
             MyServer.temp_aes_key = base64.b64decode(json_aes['aes_key'])
             MyServer.temp_aes_iv = base64.b64decode(json_aes['aes_iv'])
             response = b'ok aes key send'
+
         elif json_POST['type'] == 'AES':
             encrypted_message = base64.b64decode(json_POST['content'])
+            print(json_POST['content'])
+            
             aes_key, iv_aes_key = MyServer.temp_aes_key, MyServer.temp_aes_iv
-            response = decrypt_message_aes(encrypted_message, aes_key, iv_aes_key)
+            post_login = decrypt_message_aes(encrypted_message, aes_key, iv_aes_key)
+            data_login = post_login.decode('utf-8')
+            print("data_login:", data_login)
+            print(len(data_login))
+            # json_login = json.loads(data_login)
+            #response = base64.b64decode(json_login)
+            # print(type(response))
+            response = b'tot'
         else:
             response = b"error: Invalid type field"
 
