@@ -65,7 +65,7 @@ def crypt_message_rsa(message, public_key_pem):
             label=None
         )
     )
-    return base64.b64encode(ciphertext).decode()
+    return ciphertext
 
 def decrypt_message_rsa(ciphertext, key):
     plaintext = key.decrypt(
@@ -92,7 +92,7 @@ def crypt_message_aes(message, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(padded_message) + encryptor.finalize()
-    return base64.b64encode(ciphertext).decode()
+    return ciphertext
 
 def decrypt_message_aes(ciphertext, key, iv):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
@@ -100,8 +100,6 @@ def decrypt_message_aes(ciphertext, key, iv):
     padded_data = decryptor.update(ciphertext) + decryptor.finalize()
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
     message = unpadder.update(padded_data) + unpadder.finalize()
-
-
     return message
 
 # -- hashing -- #
@@ -195,16 +193,19 @@ def req_for_login(value, public_key):
     data_login = json.dumps(value).encode()
 
     enc_temp_key = crypt_message_rsa(aes_key_b64, public_key)
+    enc_temp_key_b64 = base64.b64encode(enc_temp_key)
     enc_message = crypt_message_aes(data_login, aes_key, aes_iv)
+    enc_message_b64 = base64.b64encode(enc_message)
 
-    data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key, 'content_aes' : enc_message, 'aes_iv' : aes_iv_b64}
-    return json.dumps(data).encode()
+    data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key_b64, 'content_aes' : enc_message_b64, 'aes_iv' : aes_iv_b64}
+    print(type(data))
+    return json.dumps(data)
 
 
 def resp_for_login(post_value, db_users):
 
-    aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key)
-    aes_iv = post_value['aes_iv']
+    aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key).decode()
+    aes_iv = post_value['aes_iv'].decode()
     data_login = decrypt_message_aes(post_value['content_rsa'], aes_key, aes_iv)
     
     json_login = json.loads(data_login.decode('utf-8'))
@@ -213,13 +214,13 @@ def resp_for_login(post_value, db_users):
 # -- test -- #
 
 if __name__ == "__main__":
-    data = b"my super message."
+    data = b"my super message"
 
     public_key = get_rsa_public('public_key.pem')
     private_key = get_rsa_private('private_key.pem')
 
     enc_data = crypt_message_rsa(data, public_key)
-    response = decrypt_message_rsa(base64.b64decode(enc_data), private_key)
+    response = decrypt_message_rsa(enc_data, private_key)
 
     print("=----------- RSA ----------=")
     print("=-- - " + response.decode('utf-8') + " - --=")
@@ -227,7 +228,7 @@ if __name__ == "__main__":
 
     temp_aes = {'aes_key' : generate_aes(), 'aes_iv' : generate_aes_iv()}
     enc_data_aes = crypt_message_aes(data, temp_aes['aes_key'], temp_aes['aes_iv'])
-    response_aes = decrypt_message_aes(base64.b64decode(enc_data_aes), temp_aes['aes_key'], temp_aes['aes_iv'])
+    response_aes = decrypt_message_aes(enc_data_aes, temp_aes['aes_key'], temp_aes['aes_iv'])
 
     print("\n=----------- AES ----------=")
     print("=-- - " + response_aes.decode('utf-8') + " - --=")
