@@ -24,3 +24,23 @@ print(server_request(json_data_aes))
 
 # private_key, public_key = generate_rsa_key()
 # rsa_key_to_file(private_key, public_key)
+
+
+print("Que faire ?")
+print("  1 : Sign Up")
+print("  2 : Login")
+choice = input("Choix --> ")
+
+if choice == "1":
+    login = input("Login : ")
+    passwd = input("Password : ")
+    r = client_signup(login, passwd)
+elif choice == "2":
+    login = input("Login : ")
+    passwd = input("Password : ")
+    r = client_login(login, passwd)
+else:
+    print("Invalid choice")
+    exit()
+
+print(r)
