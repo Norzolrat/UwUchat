@@ -186,11 +186,34 @@ def server_signin(params, db_user):
                 error = "error : Bad password"
     return (db_user,error)
 
+def req_for_login(value, public_key):
+    aes_key = generate_aes()
+    aes_iv = generate_aes_iv()
+    aes_key_b64 = base64.b64encode(aes_key)
+    aes_iv_b64 = base64.b64encode(aes_iv)
+
+    data_login = json.dumps(value).encode()
+
+    enc_temp_key = crypt_message_rsa(aes_key_b64, public_key)
+    enc_message = crypt_message_aes(data_login, aes_key, aes_iv)
+
+    data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key, 'content_aes' : enc_message, 'aes_iv' : aes_iv_b64}
+    return json.dumps(data).encode()
+
+
+def resp_for_login(post_value, db_users):
+
+    aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key)
+    aes_iv = post_value['aes_iv']
+    data_login = decrypt_message_aes(post_value['content_rsa'], aes_key, aes_iv)
+    
+    json_login = json.loads(data_login.decode('utf-8'))
+    return server_signin(json_login, db_users)
 
 # -- test -- #
 
 if __name__ == "__main__":
-    data = b"my super message, hfhfhfhfhfhshshdhsfjjfj"
+    data = b"my super message."
 
     public_key = get_rsa_public('public_key.pem')
     private_key = get_rsa_private('private_key.pem')
@@ -204,7 +227,6 @@ if __name__ == "__main__":
 
     temp_aes = {'aes_key' : generate_aes(), 'aes_iv' : generate_aes_iv()}
     enc_data_aes = crypt_message_aes(data, temp_aes['aes_key'], temp_aes['aes_iv'])
-    print(type(temp_aes['aes_key']))
     response_aes = decrypt_message_aes(base64.b64decode(enc_data_aes), temp_aes['aes_key'], temp_aes['aes_iv'])
 
     print("\n=----------- AES ----------=")
