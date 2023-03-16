@@ -5,12 +5,19 @@ import base64
 public_key = get_rsa_public('public_key.pem')
 
 message = b"Bonjour Bob, c'est Alice !"
-temp_aes_key = generate_aes()
-temp_aes_key_iv = generate_aes_iv()
-# temp_key_json = json.dumps(({'aes' : temp_aes_key, 'aes_iv' : temp_aes_key_iv}))
-enc_message = crypt_message_aes(message, temp_aes_key, temp_aes_key_iv)
+
+aes_key = generate_aes()
+aes_key_b64 = base64.b64encode(aes_key)
+aes_iv = generate_aes_iv()
+aes_iv_b64 = base64.b64encode(aes_iv)
+temp_aes = {'aes_key' : aes_key_b64.decode('utf-8'), 'aes_iv' : aes_iv_b64.decode('utf-8')}
+temp_aes_json = json.dumps(temp_aes).encode()
+
+enc_message = crypt_message_aes(message, aes_key, aes_iv)
+
+
 # enc_temp_key = crypt_message_rsa(temp_key_json, public_key)
-enc_temp_key = crypt_message_rsa(message, public_key)
+enc_temp_key = crypt_message_rsa(temp_aes_json, public_key)
 
 data_rsa = {'type' : 'RSA', 'content' : enc_temp_key}
 json_data_rsa = base64.b64encode(json.dumps((data_rsa)).encode())

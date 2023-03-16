@@ -46,13 +46,11 @@ def get_rsa_private(file):
     with open(file, 'rb') as key_file:
         private_key_pem = key_file.read()
         private_key = load_pem_private_key(private_key_pem, password=None)
-        # private_key = private_key_pem
         return private_key
     
 def get_rsa_public(file):
     with open(file, 'rb') as key_file:
         public_key_pem = key_file.read()
-        # public_key = load_pem_public_key(public_key_pem)
         public_key = public_key_pem
         return public_key
 
@@ -87,12 +85,6 @@ def generate_aes():
 
 def generate_aes_iv():
     return os.urandom(16)
-
-# def crypt_message_aes(message, key, iv):
-#     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-#     encryptor = cipher.encryptor()
-#     ciphertext = encryptor.update(message) + encryptor.finalize()
-#     return base64.b64encode(ciphertext).decode()
 
 def crypt_message_aes(message, key, iv):
     padder = padding.PKCS7(128).padder()
@@ -158,4 +150,27 @@ def save_database(users, messages):
     file.close
 
 # -- login -- #
+
+# -- test -- #
+
+if __name__ == "__main__":
+    data = b"my super message, hfhfhfhfhfhshshdhsfjjf"
+
+    public_key = get_rsa_public('public_key.pem')
+    private_key = get_rsa_private('private_key.pem')
+
+    enc_data = crypt_message_rsa(data, public_key)
+    response = decrypt_message_rsa(base64.b64decode(enc_data), private_key)
+
+    print("=----------- RSA ----------=")
+    print("=-- - " + response.decode('utf-8') + " - --=")
+    print("=--------------------------=")
+
+    temp_aes = {'aes_key' : generate_aes(), 'aes_iv' : generate_aes_iv()}
+    enc_data_aes = crypt_message_aes(data, temp_aes['aes_key'], temp_aes['aes_iv'])
+    response_aes = decrypt_message_aes(base64.b64decode(enc_data_aes), temp_aes['aes_key'], temp_aes['aes_iv'])
+
+    print("\n=----------- AES ----------=")
+    print("=-- - " + response_aes.decode('utf-8') + " - --=")
+    print("=--------------------------=")
 

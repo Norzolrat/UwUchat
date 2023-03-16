@@ -17,11 +17,11 @@ class MyServer(BaseHTTPRequestHandler):
         if json_POST['type'] == 'RSA':
             encrypted_message = base64.b64decode(json_POST['content'])
             response = decrypt_message_rsa(encrypted_message, private_key)
-            print(response)
+            response = 'ok aes key send'
         elif json_POST['type'] == 'AES':
             encrypted_message = base64.b64decode(json_POST['content'])
             aes_key, iv_aes_key = ""
-            response = decrypt_message_rsa(encrypted_message.encode(), aes_key, iv_aes_key)
+            response = decrypt_message_aes(encrypted_message, aes_key, iv_aes_key)
         else:
             response = b"error: Invalid type field"
 
