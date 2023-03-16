@@ -21,7 +21,7 @@ else:
     print("Invalid choice")
     exit()
 
-print(type(r))
+
 
 message = b"Bonjour Bob, c'est Alice !"
 
@@ -33,10 +33,7 @@ temp_aes = {'aes_key' : aes_key_b64.decode('utf-8'), 'aes_iv' : aes_iv_b64.decod
 temp_aes_json = json.dumps(temp_aes).encode()
 
 data_login = json.dumps(r).encode()
-print(data_login)
-print(len(data_login))
 enc_message = crypt_message_aes(data_login, aes_key, aes_iv)
-print(enc_message)
 
 enc_temp_key = crypt_message_rsa(temp_aes_json, public_key)
 

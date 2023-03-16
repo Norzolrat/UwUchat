@@ -161,27 +161,30 @@ def client_login(login, passwd):
     return {"action":"login", "login":login, "password":passwd}
 
 def server_signin(params, db_user):
+    
     if params["action"] == "signup":
         login = params["login"]
         password = params["password"]
         if login in db_user.keys():
-            return "error : Already exists"
-        salt = base64.b64encode(os.urandom(16)).decode()
-        db_user[login] = {
-            "password": password_hash(password, salt),
-            "slat" : salt
-        }
-        return db_user
+            error = "error : Already exists"
+        else:
+            salt = base64.b64encode(os.urandom(16)).decode()
+            db_user[login] = {
+                "password": password_hash(password, salt),
+                "slat" : salt
+            }
+            error = 'Sign in Success'
     elif params["action"] == "login":
         login = params["login"]
         password = params["password"]
         if login not in db_user.keys():
-            return "error : Bad login"
+            error = "error : Bad login"
         else:
             if db_user[login]["password"] == password_hash(password, db_user[login]["salt"]):
-                return db_user
+                error = "Login Success"
             else:
-                return "error : Bad password"
+                error = "error : Bad password"
+    return (db_user,error)
 
 
 # -- test -- #

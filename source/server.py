@@ -4,9 +4,13 @@ import base64
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from utils import *
 
+
+private_key = get_rsa_private('private_key.pem')
+(db_users, db_messages) = load_database()
+
 class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):
-
+        global db_users, db_messages
         temp_aes_key = None
         temp_aes_iv = None
 
@@ -26,17 +30,13 @@ class MyServer(BaseHTTPRequestHandler):
 
         elif json_POST['type'] == 'AES':
             encrypted_message = base64.b64decode(json_POST['content'])
-            print(json_POST['content'])
-            
+
             aes_key, iv_aes_key = MyServer.temp_aes_key, MyServer.temp_aes_iv
             post_login = decrypt_message_aes(encrypted_message, aes_key, iv_aes_key)
             data_login = post_login.decode('utf-8')
-            print("data_login:", data_login)
-            print(len(data_login))
-            # json_login = json.loads(data_login)
-            #response = base64.b64decode(json_login)
-            # print(type(response))
-            response = b'tot'
+            json_login = json.loads(data_login)
+            (db_users,error) = server_signin(json_login, db_users)
+            response = error.encode()
         else:
             response = b"error: Invalid type field"
 
@@ -47,8 +47,6 @@ class MyServer(BaseHTTPRequestHandler):
         self.wfile.write(response_content.encode('utf-8'))
 
 if __name__ == "__main__":
-    private_key = get_rsa_private('private_key.pem')
-    (db_users, db_messages) = load_database()
     HOSTNAME = "localhost"
     SERVER_PORT = 54321
     try:
