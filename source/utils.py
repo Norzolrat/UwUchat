@@ -179,7 +179,7 @@ def server_signin(params, db_user):
             salt = base64.b64encode(os.urandom(16)).decode()
             db_user[login] = {
                 "password": password_hash(password, salt),
-                "slat" : salt,
+                "salt" : salt,
                 "public_key" : user_pub_key_b64.decode("utf-8"),
                 "private_key" : user_pri_key_b64.decode("utf-8")
             }
