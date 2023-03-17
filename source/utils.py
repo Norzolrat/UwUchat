@@ -166,10 +166,15 @@ def server_signin(params, db_user):
         if login in db_user.keys():
             error = "error : Already exists"
         else:
+            user_pub_key, user_pri_key = generate_rsa_key()
+            user_pub_key_b64 = base64.b64decode(user_pub_key)
+            user_pri_key_64 = base64.b64decode(user_pri_key)
             salt = base64.b64encode(os.urandom(16)).decode()
             db_user[login] = {
                 "password": password_hash(password, salt),
-                "slat" : salt
+                "slat" : salt,
+                "public_key" : user_pub_key_b64,
+                "private_key" : user_pri_key_64
             }
             error = 'Sign in Success'
     elif params["action"] == "login":
@@ -208,12 +213,7 @@ def resp_for_login(post_value, db_users, private_key):
     aes_key_b64 = base64.b64decode(aes_key)
     aes_iv = base64.b64decode(post_value['aes_iv'])
     content_aes_b64 = base64.b64decode(post_value['content_aes'])
-    print(aes_key)
-    # print(type(content_rsa_b64))
-    # print(content_rsa_b64)
-    # print(aes_iv)
     data_login = decrypt_message_aes(content_aes_b64, aes_key_b64, aes_iv)
-    print('AES ok')
     json_login = json.loads(data_login.decode('utf-8'))
     return server_signin(json_login, db_users)
 
