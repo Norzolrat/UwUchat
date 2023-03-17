@@ -15,14 +15,15 @@ class MyServer(BaseHTTPRequestHandler):
         content_length = int(self.headers.get('Content-Length', 0))
         POST_data = self.rfile.read(content_length)
         json_POST = json.loads(POST_data.decode('utf-8'))
-        (db_users,error) = resp_for_login(json_POST, db_users, private_key)
-        response = error.encode()
-        # response = b"test"
+        (db_users, error, piv_key) = resp_for_login(json_POST, db_users, private_key)
+        if piv_key:
+            response_json = {'error' : error, 'private_key' : piv_key}
+        response = json.dumps(response_json)
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        response_content = """{}""".format(response.decode('utf-8'))
+        response_content = """{}""".format(response)
         self.wfile.write(response_content.encode('utf-8'))
 
 if __name__ == "__main__":

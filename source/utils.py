@@ -159,30 +159,31 @@ def client_login(login, passwd):
     return {"action":"login", "login":login, "password":passwd}
 
 def server_signin(params, db_user):
-    
+    piv_key = 'nokey'
     if params["action"] == "signup":
         login = params["login"]
         password = params["password"]
         if login in db_user.keys():
             error = "error : Already exists"
         else:
-            user_pub_key, user_pri_key = generate_rsa_key()
+            user_pri_key, user_pub_key = generate_rsa_key()
             user_pri_key_b64 = user_pri_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
-            ).decode('utf-8')
+            )
             user_pub_key_b64 = user_pub_key.public_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
-            ).decode('utf-8')
+            )
             salt = base64.b64encode(os.urandom(16)).decode()
             db_user[login] = {
                 "password": password_hash(password, salt),
                 "slat" : salt,
-                "public_key" : user_pub_key_b64,
-                "private_key" : user_pri_key_b64
+                "public_key" : user_pub_key_b64.decode("utf-8"),
+                "private_key" : user_pri_key_b64.decode("utf-8")
             }
+            piv_key = user_pri_key_b64.decode("utf-8")
             error = 'Sign in Success'
     elif params["action"] == "login":
         login = params["login"]
@@ -191,10 +192,11 @@ def server_signin(params, db_user):
             error = "error : Bad login"
         else:
             if db_user[login]["password"] == password_hash(password, db_user[login]["salt"]):
+                piv_key = db_user[login]["private_key"]
                 error = "Login Success"
             else:
                 error = "error : Bad password"
-    return (db_user,error)
+    return (db_user, error, piv_key)
 
 def req_for_login(value, public_key):
     aes_key = generate_aes()
