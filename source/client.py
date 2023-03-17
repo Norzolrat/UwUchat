@@ -22,7 +22,6 @@ else:
     exit()
 
 req_login = req_for_login(r, public_key)
-print(req_login)
 response = server_request(req_login)
 print(response)
 

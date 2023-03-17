@@ -198,18 +198,101 @@ def req_for_login(value, public_key):
     enc_message_b64 = base64.b64encode(enc_message)
 
     data = {'type' : 'login_signin', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8")}
-    print(type(data))
     return json.dumps(data)
 
 
-def resp_for_login(post_value, db_users):
-
-    aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key).decode()
-    aes_iv = post_value['aes_iv'].decode()
-    data_login = decrypt_message_aes(post_value['content_rsa'], aes_key, aes_iv)
-    
+def resp_for_login(post_value, db_users, private_key):
+    content_rsa_b64 = base64.b64decode(post_value['content_rsa'])
+    aes_key = decrypt_message_rsa(content_rsa_b64, private_key)
+    aes_iv = base64.b64decode(post_value['aes_iv'])
+    content_aes_b64 = base64.b64decode(post_value['content_aes'])
+    print(type(content_rsa_b64))
+    print(content_rsa_b64)
+    print(aes_iv)
+    data_login = decrypt_message_aes(content_aes_b64, aes_key, aes_iv)
+    print('AES ok')
     json_login = json.loads(data_login.decode('utf-8'))
     return server_signin(json_login, db_users)
+
+# -- message -- #
+
+def req_pub_key_by_user(user, public_key):
+    aes_key = generate_aes()
+    aes_iv = generate_aes_iv()
+    aes_key_b64 = base64.b64encode(aes_key)
+    aes_iv_b64 = base64.b64encode(aes_iv)
+
+    enc_temp_key = crypt_message_rsa(aes_key_b64, public_key)
+    enc_temp_key_b64 = base64.b64encode(enc_temp_key)
+
+    enc_message = crypt_message_aes(user, aes_key, aes_iv)
+    enc_message_b64 = base64.b64encode(enc_message)
+
+    data = {'type' : 'pub_key', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8")}
+    # (user_key, error) = server_request(data)
+    return server_request(data)
+
+def resp_pub_key_by_user(post_value, db_user, private_key):
+    aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key).decode()
+    aes_iv = post_value['aes_iv'].decode()
+    user_name = decrypt_message_aes(post_value['content_aes'], aes_key, aes_iv).decode("utf-8")
+    
+    if user_name in db_user.keys():
+        user_key = db_user[user_name]["public_key"]
+        error = "Connection create"
+    else:
+        user_key = None
+        error = "User does not exist"
+    return (user_key, error)
+
+def req_send_message(user_key, user_name, sender):
+
+    message = input(f"{user_name} --> ")
+
+    aes_key = generate_aes()
+    aes_iv = generate_aes_iv()
+    aes_key_b64 = base64.b64encode(aes_key)
+    aes_iv_b64 = base64.b64encode(aes_iv)
+
+    enc_temp_key = crypt_message_rsa(aes_key_b64, user_key)
+    enc_temp_key_b64 = base64.b64encode(enc_temp_key)
+
+    enc_message = crypt_message_aes(message, aes_key, aes_iv)
+    enc_message_b64 = base64.b64encode(enc_message)
+    
+    data = {'type' : 'message_send', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8"), 'sender' : sender, 'user_name' : user_name}
+    return json.dumps(data)
+
+def req_read_message(value, public_key):
+    aes_key = generate_aes()
+    aes_iv = generate_aes_iv()
+    aes_key_b64 = base64.b64encode(aes_key)
+    aes_iv_b64 = base64.b64encode(aes_iv)
+
+    # TODO
+
+    enc_temp_key = crypt_message_rsa(aes_key_b64, public_key)
+    enc_temp_key_b64 = base64.b64encode(enc_temp_key)
+    enc_message = crypt_message_aes(data_login, aes_key, aes_iv)
+    enc_message_b64 = base64.b64encode(enc_message)
+
+    data = {'type' : 'message_read', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8")}
+    return json.dumps(data)
+
+# -- response server -- #
+
+def resp_server(post_value, db_users, db_message, private_key):
+    match post_value['type']:
+        case "login_signin":
+            return resp_for_login(post_value, db_users, private_key)
+        case "pub_key":
+            return resp_pub_key_by_user(post_value, db_users, private_key)
+        case "message_send":
+            return b"message_send"
+        case "message_read":
+            return b"message_read"
+        case _:
+            return b"Wrong request"
 
 # -- test -- #
 
