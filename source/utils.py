@@ -106,7 +106,7 @@ def decrypt_message_aes(ciphertext, key, iv):
 
 def password_hash(password, salt):
     try:
-        passphrase = password + salt
+        passphrase = password + salt + b"plop"
         hash_object = hashlib.sha256(passphrase.encode())
         hash_hex = hash_object.hexdigest()
         return hash_hex
@@ -200,7 +200,6 @@ def server_signin(params, db_user):
 
 def req_for_login(value, public_key):
     aes_key = generate_aes()
-    print(aes_key)
     aes_iv = generate_aes_iv()
     aes_key_b64 = base64.b64encode(aes_key)
     aes_iv_b64 = base64.b64encode(aes_iv)
@@ -242,7 +241,7 @@ def req_pub_key_by_user(user, public_key):
 
     data = {'type' : 'pub_key', 'content_rsa' : enc_temp_key_b64.decode("utf-8"), 'content_aes' : enc_message_b64.decode("utf-8"), 'aes_iv' : aes_iv_b64.decode("utf-8")}
     # (user_key, error) = server_request(data)
-    return server_request(data)
+    return server_request(json.dumps(data))
 
 def resp_pub_key_by_user(post_value, db_user, private_key):
     aes_key = decrypt_message_rsa(post_value['content_rsa'], private_key).decode()
