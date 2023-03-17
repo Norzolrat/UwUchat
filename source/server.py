@@ -16,8 +16,8 @@ class MyServer(BaseHTTPRequestHandler):
         POST_data = self.rfile.read(content_length)
         json_POST = json.loads(POST_data.decode('utf-8'))
         (db_users,error) = resp_for_login(json_POST, db_users, private_key)
-        # response = error.encode()
-        response = b"test"
+        response = error.encode()
+        # response = b"test"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")

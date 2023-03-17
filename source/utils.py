@@ -186,6 +186,7 @@ def server_signin(params, db_user):
 
 def req_for_login(value, public_key):
     aes_key = generate_aes()
+    print(aes_key)
     aes_iv = generate_aes_iv()
     aes_key_b64 = base64.b64encode(aes_key)
     aes_iv_b64 = base64.b64encode(aes_iv)
@@ -204,12 +205,14 @@ def req_for_login(value, public_key):
 def resp_for_login(post_value, db_users, private_key):
     content_rsa_b64 = base64.b64decode(post_value['content_rsa'])
     aes_key = decrypt_message_rsa(content_rsa_b64, private_key)
+    aes_key_b64 = base64.b64decode(aes_key)
     aes_iv = base64.b64decode(post_value['aes_iv'])
     content_aes_b64 = base64.b64decode(post_value['content_aes'])
-    print(type(content_rsa_b64))
-    print(content_rsa_b64)
-    print(aes_iv)
-    data_login = decrypt_message_aes(content_aes_b64, aes_key, aes_iv)
+    print(aes_key)
+    # print(type(content_rsa_b64))
+    # print(content_rsa_b64)
+    # print(aes_iv)
+    data_login = decrypt_message_aes(content_aes_b64, aes_key_b64, aes_iv)
     print('AES ok')
     json_login = json.loads(data_login.decode('utf-8'))
     return server_signin(json_login, db_users)
@@ -281,18 +284,18 @@ def req_read_message(value, public_key):
 
 # -- response server -- #
 
-def resp_server(post_value, db_users, db_message, private_key):
-    match post_value['type']:
-        case "login_signin":
-            return resp_for_login(post_value, db_users, private_key)
-        case "pub_key":
-            return resp_pub_key_by_user(post_value, db_users, private_key)
-        case "message_send":
-            return b"message_send"
-        case "message_read":
-            return b"message_read"
-        case _:
-            return b"Wrong request"
+# def resp_server(post_value, db_users, db_message, private_key):
+#     match post_value['type']:
+#         case "login_signin":
+#             return resp_for_login(post_value, db_users, private_key)
+#         case "pub_key":
+#             return resp_pub_key_by_user(post_value, db_users, private_key)
+#         case "message_send":
+#             return b"message_send"
+#         case "message_read":
+#             return b"message_read"
+#         case _:
+#             return b"Wrong request"
 
 # -- test -- #
 
