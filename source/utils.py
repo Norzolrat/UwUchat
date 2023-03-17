@@ -167,14 +167,21 @@ def server_signin(params, db_user):
             error = "error : Already exists"
         else:
             user_pub_key, user_pri_key = generate_rsa_key()
-            user_pub_key_b64 = base64.b64decode(user_pub_key)
-            user_pri_key_64 = base64.b64decode(user_pri_key)
+            user_pri_key_b64 = user_pri_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            ).decode('utf-8')
+            user_pub_key_b64 = user_pub_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode('utf-8')
             salt = base64.b64encode(os.urandom(16)).decode()
             db_user[login] = {
                 "password": password_hash(password, salt),
                 "slat" : salt,
                 "public_key" : user_pub_key_b64,
-                "private_key" : user_pri_key_64
+                "private_key" : user_pri_key_b64
             }
             error = 'Sign in Success'
     elif params["action"] == "login":
